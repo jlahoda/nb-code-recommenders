@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: info.lahoda.netbeans.code.recommenders.completion
+OpenIDE-Module-Implementation-Version: 1
+OpenIDE-Module-Localizing-Bundle: info/lahoda/netbeans/code/recommenders/completion/Bundle.properties
+

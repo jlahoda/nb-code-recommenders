@@ -1,0 +1,16 @@
+#!/bin/bash -x
+generate() {
+    while read target url; do
+        mkdir -p `dirname release/$target`
+        wget $url -O release/$target;
+        cat >release/$target.external <<EOF
+CRC:$((0x`crc32 release/$target`))
+SIZE:`wc -c <release/$target`
+URL:$url
+EOF
+    done;
+#CRC:$((0x`crc32 release/$target`))
+#SIZE:`wc -c <release/$target`
+}
+
+cat external.data | tr '=' ' ' | generate
