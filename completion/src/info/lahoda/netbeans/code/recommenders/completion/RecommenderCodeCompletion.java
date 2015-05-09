@@ -1,5 +1,6 @@
 package info.lahoda.netbeans.code.recommenders.completion;
 
+import com.google.common.base.Optional;
 import com.sun.source.tree.MemberSelectTree;
 import static com.sun.source.tree.Tree.Kind.MEMBER_SELECT;
 import com.sun.source.util.TreePath;
@@ -11,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,13 +30,22 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import org.eclipse.recommenders.calls.ICallModel;
 import org.eclipse.recommenders.calls.SingleZipCallModelProvider;
+import org.eclipse.recommenders.models.DependencyInfo;
+import org.eclipse.recommenders.models.DependencyType;
+import org.eclipse.recommenders.models.IModelIndex;
+import org.eclipse.recommenders.models.IModelRepository;
+import org.eclipse.recommenders.models.ModelCoordinate;
+import org.eclipse.recommenders.models.ProjectCoordinate;
 import org.eclipse.recommenders.models.UniqueTypeName;
+import org.eclipse.recommenders.models.advisors.ProjectCoordinateAdvisorService;
 import org.eclipse.recommenders.utils.Recommendation;
 import static org.eclipse.recommenders.utils.Recommendations.top;
 import org.eclipse.recommenders.utils.names.IMethodName;
 import org.eclipse.recommenders.utils.names.ITypeName;
 import org.eclipse.recommenders.utils.names.VmTypeName;
 import org.netbeans.api.editor.mimelookup.MimeRegistration;
+import org.netbeans.api.java.classpath.ClassPath;
+import org.netbeans.api.java.source.ClasspathInfo.PathKind;
 import org.netbeans.api.java.source.CompilationController;
 import org.netbeans.api.java.source.CompilationInfo;
 import org.netbeans.api.java.source.ElementHandle;
@@ -50,7 +61,9 @@ import org.netbeans.spi.editor.completion.CompletionTask;
 import org.netbeans.spi.editor.completion.support.AsyncCompletionQuery;
 import org.netbeans.spi.editor.completion.support.AsyncCompletionTask;
 import org.netbeans.spi.editor.completion.support.CompletionUtilities;
-import org.openide.modules.InstalledFileLocator;
+import org.netbeans.spi.java.classpath.support.ClassPathSupport;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 
 /**
@@ -60,10 +73,14 @@ import org.openide.util.Exceptions;
 public class RecommenderCodeCompletion extends AsyncCompletionQuery {
 
     private static final Logger LOG = Logger.getLogger(RecommenderCodeCompletion.class.getName());
-    private final SingleZipCallModelProvider store;
+    private final IModelIndex index;
+    private final IModelRepository repository;
+    private final ProjectCoordinateAdvisorService coordinateService;
 
-    public RecommenderCodeCompletion(SingleZipCallModelProvider store) {
-        this.store = store;
+    public RecommenderCodeCompletion(IModelIndex index, IModelRepository repository, ProjectCoordinateAdvisorService coordinateService) {
+        this.index = index;
+        this.repository = repository;
+        this.coordinateService = coordinateService;
     }
 
     @Override
@@ -100,8 +117,46 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
                 MemberSelectTree mst = (MemberSelectTree) path.getLeaf();
                 TypeMirror type = info.getTrees().getTypeMirror(new TreePath(path, mst.getExpression()));
                 TypeElement clazz = (TypeElement) info.getTypes().asElement(type);//XXX
-                ITypeName typeName = VmTypeName.get("L" + info.getElements().getBinaryName(clazz).toString().replace('.', '/'));
-                UniqueTypeName name = new UniqueTypeName(null, typeName);
+                ClassPath sourceLocation = ClassPathSupport.createProxyClassPath(info.getClasspathInfo().getClassPath(PathKind.BOOT), info.getClasspathInfo().getClassPath(PathKind.COMPILE));
+                String vmName = info.getElements().getBinaryName(clazz).toString().replace('.', '/');
+                String fileName = vmName + ".class";
+                FileObject foundResource = sourceLocation.findResource(fileName);
+
+                if (foundResource == null) break;
+
+                FileObject root = sourceLocation.findOwnerRoot(foundResource);
+
+                if (root == null) break;
+
+                root = FileUtil.getArchiveFile(root);
+
+                if (root == null) break;
+                
+                ProjectCoordinate dependencyInfo = coordinateService.suggest(new DependencyInfo(FileUtil.toFile(root), DependencyType.JAR)).get();
+
+                Optional<ModelCoordinate> modelData;
+
+                index.open();
+
+                try {
+                    modelData = index.suggest(dependencyInfo, "call");
+                } finally {
+                    index.close();
+                }
+
+                if (!modelData.isPresent())
+                    break;
+
+                Optional<File> cache = repository.getLocation(modelData.get(), true);
+
+                if (!cache.isPresent())
+                    break;
+                
+                File modelFile = cache.get();
+                SingleZipCallModelProvider store = new SingleZipCallModelProvider(modelFile);
+                ITypeName typeName = VmTypeName.get("L" + vmName);
+                UniqueTypeName name = new UniqueTypeName(dependencyInfo, typeName);
+                store.open(); //XXX: cache?
                 ICallModel net = store.acquireModel(name).orNull();
                 
                 try {
@@ -141,6 +196,7 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
                     }
                 } finally {
                     store.releaseModel(net);
+                    store.close();
                 }
         }
 
@@ -256,17 +312,20 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
     @MimeRegistration(mimeType="text/x-java", service=CompletionProvider.class)
     public static final class RecommenderCodeCompletionProvider implements CompletionProvider {
 
-        private SingleZipCallModelProvider store;
+        private IModelIndex index;
+        private IModelRepository repository;
+        private ProjectCoordinateAdvisorService coordinateService;
 
         public RecommenderCodeCompletionProvider() {
             try {
-                File data = InstalledFileLocator.getDefault().locate("modules/data/jre-1.0.0-call.zip", "org.netbeans.modules.java.code.recommenders.lib", false);
+                Data data = new Data(new URL("http://download.eclipse.org/recommenders/models/juno/"));
 
-                if (data != null) {
-                    store = new SingleZipCallModelProvider(data);
-                    store.open();
-                }
-            } catch (IOException ex) {
+                data.validate();
+                
+                index = data;
+                repository = data;
+                coordinateService = new AdvisorImpl();
+            } catch (Exception ex) {
                 Exceptions.printStackTrace(ex);
             }
         }
@@ -274,7 +333,7 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
 
         @Override
         public CompletionTask createTask(int queryType, JTextComponent component) {
-            return new AsyncCompletionTask(new RecommenderCodeCompletion(store), component);
+            return new AsyncCompletionTask(new RecommenderCodeCompletion(index, repository, coordinateService), component);
         }
 
         @Override

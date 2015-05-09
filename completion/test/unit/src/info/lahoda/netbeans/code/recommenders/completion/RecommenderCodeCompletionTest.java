@@ -2,17 +2,17 @@ package info.lahoda.netbeans.code.recommenders.completion;
 
 import com.sun.source.tree.Tree.Kind;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.zip.ZipFile;
 import javax.swing.JEditorPane;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
-import junit.framework.TestCase;
-import org.eclipse.recommenders.calls.SingleZipCallModelProvider;
+import org.eclipse.recommenders.models.ModelCoordinate;
 import org.netbeans.api.editor.mimelookup.MimePath;
+import org.netbeans.junit.NbTestCase;
 import org.netbeans.modules.editor.java.JavaKit;
 import org.netbeans.modules.java.hints.test.api.HintTest;
 import org.netbeans.spi.editor.completion.CompletionItem;
@@ -33,7 +33,7 @@ import org.openide.util.lookup.ServiceProvider;
  *
  * @author lahvac
  */
-public class RecommenderCodeCompletionTest extends TestCase {
+public class RecommenderCodeCompletionTest extends NbTestCase {
 
     public RecommenderCodeCompletionTest(String testName) {
         super(testName);
@@ -109,6 +109,15 @@ public class RecommenderCodeCompletionTest extends TestCase {
                                       "}\n");
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        clearWorkDir();
+        File userdir = new File(getWorkDir(), "userdir");
+        userdir.mkdirs();
+        System.setProperty("netbeans.user", userdir.getAbsolutePath());
+    }
+
     @Hint(displayName="A", description="B", category="test", options = Options.NO_BATCH)
     @TriggerTreeKind(Kind.COMPILATION_UNIT)
     public static List<ErrorDescription> completion2Hints(HintContext ctx) throws Exception {
@@ -121,36 +130,34 @@ public class RecommenderCodeCompletionTest extends TestCase {
 
         component.setCaretPosition(caretLocation);
 
-        File dataZip = new File("../../../../../libs/release/modules/data/jre-1.0.0-call.zip");
-        SingleZipCallModelProvider store = new SingleZipCallModelProvider(dataZip);
-        store.open();
-        try {
-            RecommenderCodeCompletion rcc = new RecommenderCodeCompletion(store);
-            List<ErrorDescription> result = new ArrayList<>();
-            List<CompletionItem> completions = new ArrayList<>(rcc.resolveCodeCompletion(ctx.getInfo(), caretLocation));
+        Data data = new Data(new URL(System.getProperty("recommenders.repo", "http://download.eclipse.org/recommenders/models/juno/")));
 
-            Collections.sort(completions, new Comparator<CompletionItem>() {
-                @Override public int compare(CompletionItem o1, CompletionItem o2) {
-                    return o1.getSortPriority() - o2.getSortPriority();
-                }
-            });
+        data.validate();
+        data.resolve(new ModelCoordinate("jre", "jre", "call", "zip", "1.0.0"), true);
 
-            for (final CompletionItem ci : completions) {
-                result.add(ErrorDescriptionFactory.forSpan(ctx, 0, 0, ci.toString(), new Fix() {
-                    @Override public String getText() {
-                        return "F";
-                    }
-                    @Override public ChangeInfo implement() throws Exception {
-                        ci.defaultAction(component);
-                        return null;
-                    }
-                }));
+        RecommenderCodeCompletion rcc = new RecommenderCodeCompletion(data, data, new AdvisorImpl());
+        List<ErrorDescription> result = new ArrayList<>();
+        List<CompletionItem> completions = new ArrayList<>(rcc.resolveCodeCompletion(ctx.getInfo(), caretLocation));
+
+        Collections.sort(completions, new Comparator<CompletionItem>() {
+            @Override public int compare(CompletionItem o1, CompletionItem o2) {
+                return o1.getSortPriority() - o2.getSortPriority();
             }
+        });
 
-            return result;
-        } finally {
-            store.close();
+        for (final CompletionItem ci : completions) {
+            result.add(ErrorDescriptionFactory.forSpan(ctx, 0, 0, ci.toString(), new Fix() {
+                @Override public String getText() {
+                    return "F";
+                }
+                @Override public ChangeInfo implement() throws Exception {
+                    ci.defaultAction(component);
+                    return null;
+                }
+            }));
         }
+
+        return result;
     }
 
     @ServiceProvider(service=MimeDataProvider.class)
