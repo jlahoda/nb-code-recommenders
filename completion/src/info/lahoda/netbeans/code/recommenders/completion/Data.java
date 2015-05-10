@@ -10,9 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -25,8 +23,6 @@ import org.eclipse.recommenders.models.IModelIndex;
 import org.eclipse.recommenders.models.IModelRepository;
 import org.eclipse.recommenders.models.ModelCoordinate;
 import org.eclipse.recommenders.models.ProjectCoordinate;
-import org.eclipse.recommenders.utils.Version;
-import org.eclipse.recommenders.utils.Versions;
 import org.openide.filesystems.FileUtil;
 import org.openide.modules.Places;
 import org.openide.util.Exceptions;
@@ -40,9 +36,11 @@ import org.openide.util.RequestProcessor;
 public class Data implements IModelRepository, IModelIndex {
 
     private static final RequestProcessor DOWNLOADER = new RequestProcessor(Data.class.getName(), 1, false, false);
+    private static int idCount = 0;
 
     private final URL repository;
     private final File cacheDir;
+    private final String id;
     private IndexReader reader;
 
     public Data(URL repository) {
@@ -60,6 +58,12 @@ public class Data implements IModelRepository, IModelIndex {
         cacheDir = Places.getCacheSubdirectory("recommenders/" + cacheDirName);
 
         cacheDir.mkdirs();
+
+        this.id = Integer.toString(idCount);
+    }
+
+    public String getId() {
+        return id;
     }
 
     public boolean validate() {
@@ -251,25 +255,7 @@ public class Data implements IModelRepository, IModelIndex {
 
     @Override
     public Optional<ModelCoordinate> suggest(ProjectCoordinate pc, String type) {
-        ImmutableSet<ModelCoordinate> candidates = suggestCandidates(pc, type);
-
-        if (candidates.isEmpty())
-            return Optional.absent();
-        
-        List<Version> candidateVersions = new ArrayList<>();
-
-        for (ModelCoordinate coord : candidates) {
-            candidateVersions.add(Version.valueOf(coord.getVersion()));
-        }
-
-        Version best = Versions.findClosest(Version.valueOf(pc.getVersion()), candidateVersions);
-
-        for (ModelCoordinate coord : candidates) {
-            if (best.equals(Version.valueOf(coord.getVersion())))
-                return Optional.of(coord);
-        }
-
-        return Optional.absent();
+        return Utils.findBest(pc, suggestCandidates(pc, type));
     }
 
 }

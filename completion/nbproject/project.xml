@@ -7,6 +7,14 @@
             <suite-component/>
             <module-dependencies>
                 <dependency>
+                    <code-name-base>info.lahoda.netbeans.core.recommenders.libs</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.netbeans.api.java.classpath</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -21,6 +29,15 @@
                     <compile-dependency/>
                     <run-dependency>
                         <specification-version>8.2.0.3</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.netbeans.libs.lucene</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>3</release-version>
+                        <specification-version>3.15.1</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -51,14 +68,6 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>info.lahoda.netbeans.core.recommenders.libs</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
                     <code-name-base>org.netbeans.modules.java.editor</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -76,6 +85,15 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.netbeans.modules.options.api</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>1</release-version>
+                        <specification-version>1.39.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.netbeans.modules.whitelist</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -90,6 +108,14 @@
                     <compile-dependency/>
                     <run-dependency>
                         <specification-version>7.58</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.openide.dialogs</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>7.36</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -122,15 +148,6 @@
                     <compile-dependency/>
                     <run-dependency>
                         <specification-version>8.21</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.netbeans.libs.lucene</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <release-version>3</release-version>
-                        <specification-version>3.15.1</specification-version>
                     </run-dependency>
                 </dependency>
             </module-dependencies>

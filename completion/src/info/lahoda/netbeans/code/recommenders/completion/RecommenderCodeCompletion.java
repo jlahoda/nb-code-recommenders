@@ -318,12 +318,18 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
 
         public RecommenderCodeCompletionProvider() {
             try {
-                Data data = new Data(new URL("http://download.eclipse.org/recommenders/models/juno/"));
+                List<Data> delegates = new ArrayList<>();
 
-                data.validate();
+                for (String loc : Utils.getLocations()) {
+                    Data data = new Data(new URL(loc));
+                    data.validate();
+                    delegates.add(data);
+                }
+
+                MultiData multiData = new MultiData(delegates);
                 
-                index = data;
-                repository = data;
+                index = multiData;
+                repository = multiData;
                 coordinateService = new AdvisorImpl();
             } catch (Exception ex) {
                 Exceptions.printStackTrace(ex);
