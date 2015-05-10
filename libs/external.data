@@ -6,4 +6,3 @@ modules/ext/org.eclipse.recommenders.models-1.100.0.jar=https://repo.eclipse.org
 modules/ext/org.eclipse.recommenders.jayes-1.100.0.jar=https://repo.eclipse.org/content/repositories/recommenders-releases/org/eclipse/recommenders/org.eclipse.recommenders.jayes/1.100.0/org.eclipse.recommenders.jayes-1.100.0.jar
 modules/ext/org.eclipse.recommenders.utils-1.100.0.jar=https://repo.eclipse.org/content/repositories/recommenders-releases/org/eclipse/recommenders/org.eclipse.recommenders.utils/1.100.0/org.eclipse.recommenders.utils-1.100.0.jar
 modules/ext/slf4j-api-1.7.2.jar=http://central.maven.org/maven2/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2.jar
-modules/data/jre-1.0.0-call.zip=http://download.eclipse.org/recommenders/models/juno/jre/jre/1.0.0/jre-1.0.0-call.zip

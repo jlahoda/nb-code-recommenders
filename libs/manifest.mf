@@ -1,4 +1,4 @@
-Manifest-Version: 1.0
+Manifest-Version: 1.1
 OpenIDE-Module: info.lahoda.netbeans.core.recommenders.libs
 OpenIDE-Module-Localizing-Bundle: info/lahoda/netbeans/core/recommenders/libs/Bundle.properties
 OpenIDE-Module-Specification-Version: 1.0
