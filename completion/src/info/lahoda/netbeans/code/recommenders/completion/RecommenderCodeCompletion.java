@@ -19,9 +19,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
@@ -109,6 +111,7 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
     }
 
     List<CompletionItem> resolveCodeCompletion(CompilationInfo info, int caretOffset) throws Exception {
+        List<Element> seenMethods = new ArrayList<>();
         List<CompletionItem> result = new ArrayList<>();
         TreePath path = info.getTreeUtilities().pathFor(caretOffset);
 
@@ -190,7 +193,9 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
 
                         if (!method.getSimpleName().toString().startsWith(prefix)) continue;
 
-                        JavaCompletionItem i = JavaCompletionItem.createExecutableItem(info, method, (ExecutableType) method.asType()/*XXX*/, substitutionOffset, null, false, false, false, false, false, -1, false, null);
+                        JavaCompletionItem i = JavaCompletionItem.createExecutableItem(info, method, (ExecutableType) info.getTypes().asMemberOf((DeclaredType) type, method), substitutionOffset, null, false, false, false, false, false, -1, false, null);
+
+                        seenMethods.add(method);
 
                         result.add(new MethodCompletionItem(i, r.getRelevance(), priority++));
                     }
@@ -199,6 +204,8 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
                     store.close();
                 }
         }
+
+        JavaCompletionFilter.setSeenElements(seenMethods);
 
         return result;
     }
@@ -309,7 +316,7 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
 
     }
 
-    @MimeRegistration(mimeType="text/x-java", service=CompletionProvider.class)
+    @MimeRegistration(mimeType="text/x-java", service=CompletionProvider.class, position=50)
     public static final class RecommenderCodeCompletionProvider implements CompletionProvider {
 
         private IModelIndex index;
