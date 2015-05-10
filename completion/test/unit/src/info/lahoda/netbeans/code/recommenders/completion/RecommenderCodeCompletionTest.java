@@ -69,6 +69,23 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
                 .assertWarnings("0:0-0:0:verifier:public int length()");
     }
 
+    public void testQuery3() throws Exception {
+        HintTest.create()
+                .input("package test;\n" +
+                       "public class Test {\n" +
+                       "    private void t(String str) {\n" +
+                       "        str./*CARET*/length();\n" +
+                       "    }\n" +
+                       "}\n",
+                       false)
+                .run(RecommenderCodeCompletionTest.class)
+                .assertWarnings("0:0-0:0:verifier:public boolean equals(Object o)",
+                                "0:0-0:0:verifier:public int length()",
+                                "0:0-0:0:verifier:public String trim()",
+                                "0:0-0:0:verifier:public boolean equalsIgnoreCase(String string)",
+                                "0:0-0:0:verifier:public int hashCode()");
+    }
+
     public void testApply1() throws Exception {
         HintTest.create()
                 .input("package test;\n" +

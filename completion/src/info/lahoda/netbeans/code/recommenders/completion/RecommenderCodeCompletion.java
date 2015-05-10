@@ -180,7 +180,8 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
 
                     if (nameSpan != null && nameSpan[0] != (-1)) {
                         substitutionOffset = nameSpan[0];
-                        prefix = mst.getIdentifier().toString();
+                        //XXX: better would be to reparse/reattribute enclosing method up until caretOffset:
+                        prefix = mst.getIdentifier().toString().substring(0, Math.max(0, caretOffset - nameSpan[0]));
                     }
 
                     for (Recommendation<IMethodName> r : recommendations) {
