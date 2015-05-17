@@ -58,28 +58,28 @@
                 <package>org.eclipse.recommenders.utils.names</package>
             </public-packages>
             <class-path-extension>
-                <runtime-relative-path>ext/org.eclipse.recommenders.jayes.io-1.100.0.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/org.eclipse.recommenders.jayes.io-1.100.0.jar</binary-origin>
+                <runtime-relative-path>ext/org.eclipse.recommenders.jayes.io-2.1.14.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/org.eclipse.recommenders.jayes.io-2.1.14.jar</binary-origin>
             </class-path-extension>
             <class-path-extension>
-                <runtime-relative-path>ext/org.eclipse.recommenders.jayes-1.100.0.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/org.eclipse.recommenders.jayes-1.100.0.jar</binary-origin>
+                <runtime-relative-path>ext/org.eclipse.recommenders.jayes-2.1.14.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/org.eclipse.recommenders.jayes-2.1.14.jar</binary-origin>
             </class-path-extension>
             <class-path-extension>
-                <runtime-relative-path>ext/org.eclipse.recommenders.calls-1.100.0.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/org.eclipse.recommenders.calls-1.100.0.jar</binary-origin>
+                <runtime-relative-path>ext/org.eclipse.recommenders.calls-2.1.14.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/org.eclipse.recommenders.calls-2.1.14.jar</binary-origin>
             </class-path-extension>
             <class-path-extension>
                 <runtime-relative-path>ext/guava-15.0.jar</runtime-relative-path>
                 <binary-origin>release/modules/ext/guava-15.0.jar</binary-origin>
             </class-path-extension>
             <class-path-extension>
-                <runtime-relative-path>ext/org.eclipse.recommenders.models-1.100.0.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/org.eclipse.recommenders.models-1.100.0.jar</binary-origin>
+                <runtime-relative-path>ext/org.eclipse.recommenders.models-2.1.14.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/org.eclipse.recommenders.models-2.1.14.jar</binary-origin>
             </class-path-extension>
             <class-path-extension>
-                <runtime-relative-path>ext/org.eclipse.recommenders.utils-1.100.0.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/org.eclipse.recommenders.utils-1.100.0.jar</binary-origin>
+                <runtime-relative-path>ext/org.eclipse.recommenders.utils-2.1.14.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/org.eclipse.recommenders.utils-2.1.14.jar</binary-origin>
             </class-path-extension>
             <class-path-extension>
                 <runtime-relative-path>ext/slf4j-api-1.7.2.jar</runtime-relative-path>
@@ -88,6 +88,10 @@
             <class-path-extension>
                 <runtime-relative-path>ext/commons-lang3-3.1.jar</runtime-relative-path>
                 <binary-origin>release/modules/ext/commons-lang3-3.1.jar</binary-origin>
+            </class-path-extension>
+            <class-path-extension>
+                <runtime-relative-path>ext/commons-io-2.4</runtime-relative-path>
+                <binary-origin>release/modules/ext/commons-io-2.4</binary-origin>
             </class-path-extension>
         </data>
     </configuration>

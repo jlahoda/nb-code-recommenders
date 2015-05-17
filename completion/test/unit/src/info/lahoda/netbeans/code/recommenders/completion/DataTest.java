@@ -40,7 +40,7 @@ public class DataTest extends NbTestCase {
     }
 
     public void testSuggest() throws IOException, URISyntaxException {
-        Data data = new Data(new URL(System.getProperty("recommenders.repo", "http://download.eclipse.org/recommenders/models/juno/")));
+        Data data = new Data(new URL(System.getProperty("recommenders.luna.repo", "http://download.eclipse.org/recommenders/models/luna/")));
 
         assertTrue(data.validate());
 
@@ -49,10 +49,10 @@ public class DataTest extends NbTestCase {
         try {
             AdvisorImpl advisor = new AdvisorImpl();
 
-            File guavaFile = Places.getCacheSubfile("test/guava-10.0.jar");
+            File jgitFile = Places.getCacheSubfile("test/org.eclipse.jgit-3.7.1.201504261725-r.jar");
             
-            download(new URL(System.getProperty("guava.location", "http://central.maven.org/maven2/com/google/guava/guava/10.0/guava-10.0.jar")), guavaFile);
-            checkKnown(guavaFile, advisor, data);
+            download(new URL(System.getProperty("jgit.location", "https://repo.eclipse.org/content/groups/releases/org/eclipse/jgit/org.eclipse.jgit/3.7.1.201504261725-r/org.eclipse.jgit-3.7.1.201504261725-r.jar")), jgitFile);
+            checkKnown(jgitFile, advisor, data);
 
             ClassPath bcp = JavaPlatformManager.getDefault().getDefaultPlatform().getBootstrapLibraries();
             FileObject jlObject = bcp.findResource("java/lang/Object.class");
@@ -69,6 +69,25 @@ public class DataTest extends NbTestCase {
             assertTrue(rtJar.exists());
 
             checkKnown(rtJar, advisor, data);
+        } finally {
+            data.close();
+        }
+    }
+
+    public void testSuggestNB() throws IOException, URISyntaxException {
+        Data data = new Data(new URL(System.getProperty("recommenders.netbeans.repo", "http://download.codetrails.com/models/netbeans-2015-05-11/")));
+
+        assertTrue(data.validate());
+
+        data.open();
+
+        try {
+            AdvisorImpl advisor = new AdvisorImpl();
+
+            checkKnown(new File("/usr/local/home/lahvac/src/nb/outgoing/nbbuild/netbeans/java/modules/org-netbeans-modules-java-source.jar"), advisor, data);
+            checkKnown(new File("/usr/local/home/lahvac/src/nb/outgoing/nbbuild/netbeans/java/modules/org-netbeans-spi-java-hints.jar"), advisor, data);
+            checkKnown(new File("/usr/local/home/lahvac/src/nb/outgoing/nbbuild/netbeans/ide/modules/org-netbeans-modules-jumpto.jar"), advisor, data);
+            checkKnown(new File("/usr/local/home/lahvac/src/nb/outgoing/nbbuild/netbeans/java/modules/ext/nb-javac-api.jar"), advisor, data);
         } finally {
             data.close();
         }

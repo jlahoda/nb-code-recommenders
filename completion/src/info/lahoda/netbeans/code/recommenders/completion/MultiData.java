@@ -5,7 +5,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.eclipse.recommenders.models.DownloadCallback;
 import org.eclipse.recommenders.models.IModelIndex;
 import org.eclipse.recommenders.models.IModelRepository;
@@ -126,8 +128,14 @@ public class MultiData implements IModelRepository, IModelIndex {
 
         for (Data d : delegate) {
             for (ModelCoordinate candidate : d.suggestCandidates(pc, type)) {
-                candidate.setHint(KEY_DELEGATE, d.getId());
-                result.add(candidate);
+                Map<String, String> hints = new HashMap<>(candidate.getHints());
+                hints.put(KEY_DELEGATE, d.getId());
+                result.add(new ModelCoordinate(candidate.getGroupId(),
+                                               candidate.getArtifactId(),
+                                               candidate.getClassifier(),
+                                               candidate.getExtension(),
+                                               candidate.getVersion(),
+                                               hints));
             }
         }
 
@@ -137,6 +145,11 @@ public class MultiData implements IModelRepository, IModelIndex {
     @Override
     public Optional<ModelCoordinate> suggest(ProjectCoordinate pc, String type) {
         return Utils.findBest(pc, suggestCandidates(pc, type));
+    }
+
+    @Override
+    public void updateIndex(File file) throws IOException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

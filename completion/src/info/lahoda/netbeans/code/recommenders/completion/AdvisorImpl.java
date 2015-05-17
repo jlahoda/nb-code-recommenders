@@ -21,6 +21,7 @@ public class AdvisorImpl extends ProjectCoordinateAdvisorService {
         addAdvisor(new MavenPomXmlAdvisor());
         addAdvisor(new MavenPomPropertiesAdvisor());
         addAdvisor(new JREAdvisor());
+        addAdvisor(new NBAdvisorImpl());
     }
 
     private static final class JREAdvisor extends ProjectCoordinateAdvisorService {

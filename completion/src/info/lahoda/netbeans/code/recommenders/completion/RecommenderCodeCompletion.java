@@ -34,6 +34,7 @@ import org.eclipse.recommenders.calls.ICallModel;
 import org.eclipse.recommenders.calls.SingleZipCallModelProvider;
 import org.eclipse.recommenders.models.DependencyInfo;
 import org.eclipse.recommenders.models.DependencyType;
+import org.eclipse.recommenders.models.IInputStreamTransformer;
 import org.eclipse.recommenders.models.IModelIndex;
 import org.eclipse.recommenders.models.IModelRepository;
 import org.eclipse.recommenders.models.ModelCoordinate;
@@ -156,7 +157,7 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
                     break;
                 
                 File modelFile = cache.get();
-                SingleZipCallModelProvider store = new SingleZipCallModelProvider(modelFile);
+                SingleZipCallModelProvider store = new SingleZipCallModelProvider(modelFile, Collections.<String, IInputStreamTransformer>emptyMap());
                 ITypeName typeName = VmTypeName.get("L" + vmName);
                 UniqueTypeName name = new UniqueTypeName(dependencyInfo, typeName);
                 store.open(); //XXX: cache?

@@ -1,8 +1,9 @@
 modules/ext/commons-lang3-3.1.jar=http://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.1/commons-lang3-3.1.jar
 modules/ext/guava-15.0.jar=http://repo1.maven.org/maven2/com/google/guava/guava/15.0/guava-15.0.jar
-modules/ext/org.eclipse.recommenders.jayes.io-1.100.0.jar=https://repo.eclipse.org/content/repositories/recommenders-releases/org/eclipse/recommenders/org.eclipse.recommenders.jayes.io/1.100.0/org.eclipse.recommenders.jayes.io-1.100.0.jar
-modules/ext/org.eclipse.recommenders.calls-1.100.0.jar=https://repo.eclipse.org/content/repositories/recommenders-releases/org/eclipse/recommenders/org.eclipse.recommenders.calls/1.100.0/org.eclipse.recommenders.calls-1.100.0.jar
-modules/ext/org.eclipse.recommenders.models-1.100.0.jar=https://repo.eclipse.org/content/repositories/recommenders-releases/org/eclipse/recommenders/org.eclipse.recommenders.models/1.100.0/org.eclipse.recommenders.models-1.100.0.jar
-modules/ext/org.eclipse.recommenders.jayes-1.100.0.jar=https://repo.eclipse.org/content/repositories/recommenders-releases/org/eclipse/recommenders/org.eclipse.recommenders.jayes/1.100.0/org.eclipse.recommenders.jayes-1.100.0.jar
-modules/ext/org.eclipse.recommenders.utils-1.100.0.jar=https://repo.eclipse.org/content/repositories/recommenders-releases/org/eclipse/recommenders/org.eclipse.recommenders.utils/1.100.0/org.eclipse.recommenders.utils-1.100.0.jar
+modules/ext/org.eclipse.recommenders.jayes.io-2.1.14.jar=https://repo.eclipse.org/content/repositories/recommenders-snapshots/org/eclipse/recommenders/org.eclipse.recommenders.jayes.io/2.1.14-SNAPSHOT/org.eclipse.recommenders.jayes.io-2.1.14-20150423.135528-90.jar
+modules/ext/org.eclipse.recommenders.calls-2.1.14.jar=https://repo.eclipse.org/content/repositories/recommenders-snapshots/org/eclipse/recommenders/org.eclipse.recommenders.calls/2.1.14-SNAPSHOT/org.eclipse.recommenders.calls-2.1.14-20150423.135530-90.jar
+modules/ext/org.eclipse.recommenders.models-2.1.14.jar=https://repo.eclipse.org/content/repositories/recommenders-snapshots/org/eclipse/recommenders/org.eclipse.recommenders.models/2.1.14-SNAPSHOT/org.eclipse.recommenders.models-2.1.14-20150423.135514-90.jar
+modules/ext/org.eclipse.recommenders.jayes-2.1.14.jar=https://repo.eclipse.org/content/repositories/recommenders-snapshots/org/eclipse/recommenders/org.eclipse.recommenders.jayes/2.1.14-SNAPSHOT/org.eclipse.recommenders.jayes-2.1.14-20150423.135527-90.jar
+modules/ext/org.eclipse.recommenders.utils-2.1.14.jar=https://repo.eclipse.org/content/repositories/recommenders-snapshots/org/eclipse/recommenders/org.eclipse.recommenders.utils/2.1.14-SNAPSHOT/org.eclipse.recommenders.utils-2.1.14-20150423.135513-90.jar
 modules/ext/slf4j-api-1.7.2.jar=http://central.maven.org/maven2/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2.jar
+modules/ext/commons-io-2.4=https://repo1.maven.org/maven2/commons-io/commons-io/2.4/commons-io-2.4.jar

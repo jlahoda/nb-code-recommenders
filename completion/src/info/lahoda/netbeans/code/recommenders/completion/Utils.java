@@ -2,7 +2,7 @@ package info.lahoda.netbeans.code.recommenders.completion;
 
 import com.google.common.base.Optional;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -40,6 +40,9 @@ public class Utils {
     }
 
     public static Optional<ModelCoordinate> findBest(ProjectCoordinate pc, Set<ModelCoordinate> candidates) {
+        if (candidates.isEmpty()) {
+            return Optional.absent();
+        }
         List<Version> candidateVersions = new ArrayList<>();
 
         for (ModelCoordinate coord : candidates) {
@@ -69,7 +72,8 @@ public class Utils {
         }
 
         if (!values) {
-            return Collections.singletonList("http://download.eclipse.org/recommenders/models/juno/");
+            return Arrays.asList("http://download.codetrails.com/models/netbeans-2015-05-11/",
+                                 "http://download.eclipse.org/recommenders/models/luna/");
         }
         Preferences locations = NbPreferences.forModule(Utils.class).node(KEY_LOCATIONS);
         List<String> result = new ArrayList<>();

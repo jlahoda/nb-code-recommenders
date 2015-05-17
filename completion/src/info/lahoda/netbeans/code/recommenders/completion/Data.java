@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,11 +24,18 @@ import org.eclipse.recommenders.models.IModelIndex;
 import org.eclipse.recommenders.models.IModelRepository;
 import org.eclipse.recommenders.models.ModelCoordinate;
 import org.eclipse.recommenders.models.ProjectCoordinate;
+import org.eclipse.recommenders.utils.Pair;
 import org.openide.filesystems.FileUtil;
 import org.openide.modules.Places;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.RequestProcessor;
+import org.openide.xml.XMLUtil;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -113,11 +121,15 @@ public class Data implements IModelRepository, IModelIndex {
 
     @Override
     public Optional<File> getLocation(final ModelCoordinate mc, boolean bln) {
-        String path = cachePath(mc);
-        File targetFile = cacheFile(path);
+        Pair<ModelCoordinate, String> coordAndVersion = resolveSnapshotCoordinate(mc, false);
 
-        if (targetFile.exists()) {
-            return Optional.of(targetFile);
+        if (coordAndVersion != null) {
+            String path = cachePath(coordAndVersion);
+            File targetFile = cacheFile(path);
+
+            if (targetFile.exists()) {
+                return Optional.of(targetFile);
+            }
         }
 
         if (bln) {
@@ -138,8 +150,74 @@ public class Data implements IModelRepository, IModelIndex {
 
     @Override
     public Optional<File> resolve(ModelCoordinate mc, boolean bln, DownloadCallback dc) {
+        Pair<ModelCoordinate, String> coordAndVersion = resolveSnapshotCoordinate(mc, true);
+
+        if (coordAndVersion == null)
+            return Optional.absent();
+
+        return ensureInCache(cachePath(coordAndVersion));
+    }
+
+    private Pair<ModelCoordinate, String> resolveSnapshotCoordinate(ModelCoordinate mc, boolean download) {
+        StringBuilder metadataPath = new StringBuilder();
+        metadataPath.append(mc.getGroupId().replace('.', '/'));
+        metadataPath.append("/" + mc.getArtifactId());
+        metadataPath.append("/" + mc.getVersion() + "-SNAPSHOT");
+        metadataPath.append("/maven-metadata.xml");
+
+        Optional<File> metadataFile = download ? ensureInCache(metadataPath.toString()) : Optional.of(cacheFile(metadataPath.toString()));
+
+        if (!metadataFile.isPresent() || !metadataFile.get().exists())
+            return null;
+
+        try (InputStream in = new FileInputStream(metadataFile.get())) {
+            org.w3c.dom.Document xmlDoc = XMLUtil.parse(new InputSource(in), false, false, null, null);
+
+            Element snapshotVersions = findSubElement(findSubElement(xmlDoc.getDocumentElement(), "versioning"), "snapshotVersions");
+            NodeList nl = snapshotVersions.getChildNodes();
+
+            for (int i = 0; i < nl.getLength(); i++) {
+                Node n = nl.item(i);
+
+                if (n.getNodeType() != Node.ELEMENT_NODE)
+                    continue;
+
+                if (!"snapshotVersion".equals(n.getNodeName()))
+                    continue;
+
+                if (mc.getClassifier() != null && !mc.getClassifier().equals(findSubElement((Element) n, "classifier").getTextContent()))
+                    continue;
+
+                Element value = findSubElement((Element) n, "value");
+
+                return Pair.newPair(mc, value.getTextContent());
+            }
+
+            return null;
+        } catch (IOException | SAXException ex) {
+            Exceptions.printStackTrace(ex);
+            return null;
+        }
+    }
+
+    private Element findSubElement(Element el, String toFind) {
+        NodeList nl = el.getChildNodes();
+
+        for (int i = 0; i < nl.getLength(); i++) {
+            Node n = nl.item(i);
+
+            if (n.getNodeType() != Node.ELEMENT_NODE)
+                continue;
+
+            if (toFind.equals(n.getNodeName()))
+                return (Element) n;
+        }
+
+        return null;
+    }
+
+    private Optional<File> ensureInCache(String path) {
         try {
-            String path = cachePath(mc);
             File targetFile = cacheFile(path);
             
             if (targetFile.exists()) {
@@ -148,7 +226,8 @@ public class Data implements IModelRepository, IModelIndex {
             
             targetFile.getParentFile().mkdirs();
             
-            URL target = new URL(repository.getProtocol(), repository.getHost(), repository.getPath() + path);
+            URL target = new URL(repository.getProtocol(), repository.getHost(), repository.getPort(), repository.getPath() + path);
+
             try (InputStream in = target.openStream();
                  OutputStream out = new BufferedOutputStream(new FileOutputStream(targetFile))) {
                 FileUtil.copy(in, out);
@@ -161,13 +240,14 @@ public class Data implements IModelRepository, IModelIndex {
         }
     }
 
-    private String cachePath(ModelCoordinate mc) {
+    private String cachePath(Pair<ModelCoordinate, String> coordAndVersion) {
+        ModelCoordinate mc = coordAndVersion.getFirst();
         StringBuilder pathBuilder = new StringBuilder();
         pathBuilder.append(mc.getGroupId().replace('.', '/'));
         pathBuilder.append("/" + mc.getArtifactId());
-        pathBuilder.append("/" + mc.getVersion());
+        pathBuilder.append("/" + mc.getVersion() + "-SNAPSHOT");
         pathBuilder.append("/" + mc.getArtifactId());
-        pathBuilder.append("-" + mc.getVersion());
+        pathBuilder.append("-" + coordAndVersion.getSecond());
         if (mc.getClassifier() != null)
             pathBuilder.append("-" + mc.getClassifier());
         pathBuilder.append("." + mc.getExtension());
@@ -256,6 +336,11 @@ public class Data implements IModelRepository, IModelIndex {
     @Override
     public Optional<ModelCoordinate> suggest(ProjectCoordinate pc, String type) {
         return Utils.findBest(pc, suggestCandidates(pc, type));
+    }
+
+    @Override
+    public void updateIndex(File file) throws IOException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }
