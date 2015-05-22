@@ -67,7 +67,7 @@ public class Data implements IModelRepository, IModelIndex {
 
         cacheDir.mkdirs();
 
-        this.id = Integer.toString(idCount);
+        this.id = Integer.toString(idCount++);
     }
 
     public String getId() {
