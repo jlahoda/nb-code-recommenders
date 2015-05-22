@@ -51,9 +51,8 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
                 .run(RecommenderCodeCompletionTest.class)
                 .assertWarnings("0:0-0:0:verifier:public boolean equals(Object o)",
                                 "0:0-0:0:verifier:public int length()",
-                                "0:0-0:0:verifier:public String trim()",
-                                "0:0-0:0:verifier:public boolean equalsIgnoreCase(String string)",
-                                "0:0-0:0:verifier:public int hashCode()");
+                                "0:0-0:0:verifier:public String substring(int i, int i1)",
+                                "0:0-0:0:verifier:public boolean equalsIgnoreCase(String string)");
     }
 
     public void testQuery2() throws Exception {
@@ -81,9 +80,8 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
                 .run(RecommenderCodeCompletionTest.class)
                 .assertWarnings("0:0-0:0:verifier:public boolean equals(Object o)",
                                 "0:0-0:0:verifier:public int length()",
-                                "0:0-0:0:verifier:public String trim()",
-                                "0:0-0:0:verifier:public boolean equalsIgnoreCase(String string)",
-                                "0:0-0:0:verifier:public int hashCode()");
+                                "0:0-0:0:verifier:public String substring(int i, int i1)",
+                                "0:0-0:0:verifier:public boolean equalsIgnoreCase(String string)");
     }
 
     public void testApply1() throws Exception {
@@ -135,6 +133,10 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
         System.setProperty("netbeans.user", userdir.getAbsolutePath());
     }
 
+    static {
+        RecommenderCodeCompletion.MIN_RELEVANCE = 0.001d;
+    }
+
     @Hint(displayName="A", description="B", category="test", options = Options.NO_BATCH)
     @TriggerTreeKind(Kind.COMPILATION_UNIT)
     public static List<ErrorDescription> completion2Hints(HintContext ctx) throws Exception {
@@ -147,10 +149,10 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
 
         component.setCaretPosition(caretLocation);
 
-        Data data = new Data(new URL(System.getProperty("recommenders.repo", "http://download.eclipse.org/recommenders/models/juno/")));
+        Data data = new Data(new URL(System.getProperty("recommenders.luna.repo", "http://download.eclipse.org/recommenders/models/luna/")));
 
-        data.validate();
-        data.resolve(new ModelCoordinate("jre", "jre", "call", "zip", "1.0.0"), true);
+        assertTrue(data.validate());
+        assertTrue(data.resolve(new ModelCoordinate("jre", "jre", "call", "zip", "1.0.0"), true).isPresent());
 
         RecommenderCodeCompletion rcc = new RecommenderCodeCompletion(data, data, new AdvisorImpl());
         List<ErrorDescription> result = new ArrayList<>();

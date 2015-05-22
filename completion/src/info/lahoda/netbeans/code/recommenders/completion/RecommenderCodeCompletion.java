@@ -76,6 +76,7 @@ import org.openide.util.Exceptions;
 public class RecommenderCodeCompletion extends AsyncCompletionQuery {
 
     private static final Logger LOG = Logger.getLogger(RecommenderCodeCompletion.class.getName());
+            static       double MIN_RELEVANCE = 0.01d;
     private final IModelIndex index;
     private final IModelRepository repository;
     private final ProjectCoordinateAdvisorService coordinateService;
@@ -166,7 +167,7 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
                 try {
                     net.setObservedCalls(Collections.<IMethodName>emptySet());
 
-                    List<Recommendation<IMethodName>> recommendations = new ArrayList<>(top(net.recommendCalls(), 5, 0.01d));
+                    List<Recommendation<IMethodName>> recommendations = new ArrayList<>(top(net.recommendCalls(), 5, MIN_RELEVANCE));
 
                     Collections.sort(recommendations, new Comparator<Recommendation<?>>() {
                         @Override public int compare(Recommendation<?> o1, Recommendation<?> o2) {
