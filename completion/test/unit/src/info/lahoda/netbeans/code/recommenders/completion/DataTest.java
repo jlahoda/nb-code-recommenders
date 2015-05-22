@@ -15,10 +15,14 @@ import org.eclipse.recommenders.models.ModelCoordinate;
 import org.eclipse.recommenders.models.ProjectCoordinate;
 import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.java.platform.JavaPlatformManager;
+import org.netbeans.api.java.source.JavaSource;
+import org.netbeans.api.jumpto.type.TypeBrowser;
 import org.netbeans.junit.NbTestCase;
+import org.netbeans.spi.java.hints.JavaFixUtilities;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.modules.Places;
+import org.openide.util.Utilities;
 
 /**
  *
@@ -84,13 +88,27 @@ public class DataTest extends NbTestCase {
         try {
             AdvisorImpl advisor = new AdvisorImpl();
 
-            checkKnown(new File("/usr/local/home/lahvac/src/nb/outgoing/nbbuild/netbeans/java/modules/org-netbeans-modules-java-source.jar"), advisor, data);
-            checkKnown(new File("/usr/local/home/lahvac/src/nb/outgoing/nbbuild/netbeans/java/modules/org-netbeans-spi-java-hints.jar"), advisor, data);
-            checkKnown(new File("/usr/local/home/lahvac/src/nb/outgoing/nbbuild/netbeans/ide/modules/org-netbeans-modules-jumpto.jar"), advisor, data);
-            checkKnown(new File("/usr/local/home/lahvac/src/nb/outgoing/nbbuild/netbeans/java/modules/ext/nb-javac-api.jar"), advisor, data);
+            checkKnown(jarFileForClass(JavaSource.class), advisor, data);
+            checkKnown(jarFileForClass(JavaFixUtilities.class), advisor, data);
+            checkKnown(jarFileForClass(TypeBrowser.class), advisor, data);
+            checkKnown(jarFileForResource("javax/tools/overview.html"), advisor, data);
         } finally {
             data.close();
         }
+    }
+
+    private File jarFileForClass(Class dependencyClass) throws URISyntaxException {
+        URL source = dependencyClass.getProtectionDomain().getCodeSource().getLocation();
+        
+        return Utilities.toFile(source.toURI());
+    }
+
+    private File jarFileForResource(String resource) throws URISyntaxException {
+        URL source = DataTest.class.getClassLoader().getResource(resource);
+
+        source = FileUtil.getArchiveFile(source);
+        
+        return Utilities.toFile(source.toURI());
     }
 
     private void checkKnown(File jar2Check, AdvisorImpl advisor, Data data) {
