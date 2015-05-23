@@ -125,6 +125,10 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
         ts.move(caretOffset);
         if (!ts.movePrevious())
             return Collections.emptyList();
+        if (ts.offset() + ts.token().length() < caretOffset) {
+            if (!ts.moveNext())
+                return Collections.emptyList();
+        }
         if (ts.token().id() == JavaTokenId.IDENTIFIER) {
             prefix = info.getText().substring(ts.offset(), caretOffset);
             caretOffset = ts.offset();

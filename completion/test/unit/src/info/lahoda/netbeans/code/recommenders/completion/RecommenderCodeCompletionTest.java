@@ -138,6 +138,24 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
                 .assertWarnings("0:0-0:0:verifier:public int length()");
     }
 
+    public void testMiddleOfToken() throws Exception {
+        String augmentedCode =
+               "package test;\n" +
+               "public class Test {\n" +
+               "    private void t(String str) {\n" +
+               "        str.len/*CARET*/gth();\n" +
+               "    }\n" +
+               "}\n";
+        overridePosition = augmentedCode.indexOf("/*CARET*/");
+        HintTest.create()
+                .input(augmentedCode.replace("/*CARET*/", ""),
+                       false)
+                .run(RecommenderCodeCompletionTest.class)
+                .assertWarnings("0:0-0:0:verifier:public int length()");
+    }
+
+    private static int overridePosition;
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
@@ -145,6 +163,7 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
         File userdir = new File(getWorkDir(), "userdir");
         userdir.mkdirs();
         System.setProperty("netbeans.user", userdir.getAbsolutePath());
+        overridePosition = (-1);
     }
 
     static {
@@ -160,6 +179,12 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
         component.setDocument(doc);
 
         int caretLocation = ctx.getInfo().getText().indexOf("/*CARET*/");
+
+        if (caretLocation == (-1)) {
+            caretLocation = overridePosition;
+        }
+
+        assertTrue(caretLocation != (-1));
 
         component.setCaretPosition(caretLocation);
 
