@@ -167,6 +167,9 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
                 MemberSelectTree mst = (MemberSelectTree) path.getLeaf();
                 TypeMirror type = info.getTrees().getTypeMirror(new TreePath(path, mst.getExpression()));
                 TypeElement clazz = (TypeElement) info.getTypes().asElement(type);//XXX
+
+                if (clazz == null) break;
+
                 ClassPath sourceLocation = ClassPathSupport.createProxyClassPath(info.getClasspathInfo().getClassPath(PathKind.BOOT), info.getClasspathInfo().getClassPath(PathKind.COMPILE));
                 String vmName = info.getElements().getBinaryName(clazz).toString().replace('.', '/');
                 String fileName = vmName + ".class";

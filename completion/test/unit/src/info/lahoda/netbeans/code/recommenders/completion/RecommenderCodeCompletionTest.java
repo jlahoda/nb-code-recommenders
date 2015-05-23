@@ -154,6 +154,19 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
                 .assertWarnings("0:0-0:0:verifier:public int length()");
     }
 
+    public void testUndefined() throws Exception {
+        HintTest.create()
+                .input("package test;\n" +
+                       "public class Test {\n" +
+                       "    private void t() {\n" +
+                       "        Undefined./*CARET*/;\n" +
+                       "    }\n" +
+                       "}\n",
+                       false)
+                .run(RecommenderCodeCompletionTest.class)
+                .assertWarnings();
+    }
+
     private static int overridePosition;
 
     @Override
