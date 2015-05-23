@@ -124,6 +124,20 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
                                       "}\n");
     }
 
+    public void testIgnoreSuffix() throws Exception {
+        HintTest.create()
+                .input("package test;\n" +
+                       "public class Test {\n" +
+                       "    private void t(String str) {\n" +
+                       "        str.len/*CARET*/\n" +
+                       "        String str2;\n" +
+                       "    }\n" +
+                       "}\n",
+                       false)
+                .run(RecommenderCodeCompletionTest.class)
+                .assertWarnings("0:0-0:0:verifier:public int length()");
+    }
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();

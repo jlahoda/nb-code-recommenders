@@ -2,7 +2,12 @@ package info.lahoda.netbeans.code.recommenders.completion;
 
 import com.google.common.base.Optional;
 import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.Scope;
+import com.sun.source.tree.StatementTree;
+import com.sun.source.tree.Tree.Kind;
 import static com.sun.source.tree.Tree.Kind.MEMBER_SELECT;
+import com.sun.source.util.SourcePositions;
 import com.sun.source.util.TreePath;
 import java.awt.Color;
 import java.awt.Font;
@@ -48,6 +53,7 @@ import org.eclipse.recommenders.utils.names.ITypeName;
 import org.eclipse.recommenders.utils.names.VmTypeName;
 import org.netbeans.api.editor.mimelookup.MimeRegistration;
 import org.netbeans.api.java.classpath.ClassPath;
+import org.netbeans.api.java.lexer.JavaTokenId;
 import org.netbeans.api.java.source.ClasspathInfo.PathKind;
 import org.netbeans.api.java.source.CompilationController;
 import org.netbeans.api.java.source.CompilationInfo;
@@ -56,6 +62,7 @@ import org.netbeans.api.java.source.JavaSource;
 import org.netbeans.api.java.source.JavaSource.Phase;
 import org.netbeans.api.java.source.SourceUtils;
 import org.netbeans.api.java.source.Task;
+import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.modules.editor.java.JavaCompletionItem;
 import org.netbeans.spi.editor.completion.CompletionItem;
 import org.netbeans.spi.editor.completion.CompletionProvider;
@@ -96,7 +103,7 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
             
             js.runUserActionTask(new Task<CompilationController>() {
                 @Override public void run(CompilationController parameter) throws Exception {
-                    parameter.toPhase(Phase.RESOLVED); //XXX: should check the content and prevent attribution if possible
+                    parameter.toPhase(Phase.ELEMENTS_RESOLVED); //XXX: should check the content and prevent attribution if possible
 
                     resolveCodeCompletion(parameter, caretOffset, resultSet);
                 }
@@ -113,9 +120,43 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
     }
 
     List<CompletionItem> resolveCodeCompletion(CompilationInfo info, int caretOffset) throws Exception {
+        String prefix = "";
+        TokenSequence<JavaTokenId> ts = SourceUtils.getJavaTokenSequence(info.getTokenHierarchy(), caretOffset);
+        ts.move(caretOffset);
+        if (!ts.movePrevious())
+            return Collections.emptyList();
+        if (ts.token().id() == JavaTokenId.IDENTIFIER) {
+            prefix = info.getText().substring(ts.offset(), caretOffset);
+            caretOffset = ts.offset();
+        }
         List<Element> seenMethods = new ArrayList<>();
         List<CompletionItem> result = new ArrayList<>();
         TreePath path = info.getTreeUtilities().pathFor(caretOffset);
+
+        MethodTree methodDef = null;
+
+        while (path != null) {
+            if (path.getLeaf().getKind() == Kind.METHOD) {
+                methodDef = (MethodTree) path.getLeaf();
+                break;
+            }
+            path = path.getParentPath();
+        }
+
+        if (methodDef == null || methodDef.getBody() == null)
+            return Collections.emptyList();
+        
+        int bodyStart = (int) info.getTrees().getSourcePositions().getStartPosition(info.getCompilationUnit(), methodDef.getBody());
+        
+        if (bodyStart > caretOffset)
+            return Collections.emptyList();
+            
+        String limitedBody = info.getText().substring(bodyStart, caretOffset);
+        SourcePositions[] positions = new SourcePositions[1];
+        StatementTree newBody = info.getTreeUtilities().parseStatement(limitedBody, positions);
+        Scope scope = info.getTrees().getScope(path);
+        path = info.getTreeUtilities().pathFor(new TreePath(path, newBody), caretOffset - bodyStart, positions[0]);
+        info.getTreeUtilities().attributeTreeTo(newBody, scope, path.getLeaf());
 
         switch (path.getLeaf().getKind()) {
             case MEMBER_SELECT:
@@ -177,14 +218,6 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
 
                     int priority = 0;
                     int substitutionOffset = caretOffset;
-                    String prefix = "";
-                    int[] nameSpan = info.getTreeUtilities().findNameSpan(mst);
-
-                    if (nameSpan != null && nameSpan[0] != (-1)) {
-                        substitutionOffset = nameSpan[0];
-                        //XXX: better would be to reparse/reattribute enclosing method up until caretOffset:
-                        prefix = mst.getIdentifier().toString().substring(0, Math.max(0, caretOffset - nameSpan[0]));
-                    }
 
                     for (Recommendation<IMethodName> r : recommendations) {
                         ExecutableElement method = resolveMethod(info, r.getProposal());
