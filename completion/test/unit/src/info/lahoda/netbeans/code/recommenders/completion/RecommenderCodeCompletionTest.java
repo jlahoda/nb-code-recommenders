@@ -167,6 +167,24 @@ public class RecommenderCodeCompletionTest extends NbTestCase {
                 .assertWarnings();
     }
 
+    public void testObservedCalls() throws Exception {
+        HintTest.create()
+                .input("package test;\n" +
+                       "import java.util.Map;\n" +
+                       "public class Test {\n" +
+                       "    private void t(String str) {\n" +
+                       "        str.indexOf('x');\n" +
+                       "        str./*CARET*/\n" +
+                       "    }\n" +
+                       "}\n",
+                       false)
+                .run(RecommenderCodeCompletionTest.class)
+                .assertWarnings("0:0-0:0:verifier:public String substring(int i)",
+                                "0:0-0:0:verifier:public String substring(int i, int i1)",
+                                "0:0-0:0:verifier:public boolean endsWith(String string)",
+                                "0:0-0:0:verifier:public boolean startsWith(String string)");
+    }
+
     private static int overridePosition;
 
     @Override

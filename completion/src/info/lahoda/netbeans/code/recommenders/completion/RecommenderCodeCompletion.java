@@ -9,6 +9,7 @@ import com.sun.source.tree.Tree.Kind;
 import static com.sun.source.tree.Tree.Kind.MEMBER_SELECT;
 import com.sun.source.util.SourcePositions;
 import com.sun.source.util.TreePath;
+import com.sun.source.util.TreePathScanner;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -21,7 +22,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.lang.model.element.Element;
@@ -50,6 +53,7 @@ import org.eclipse.recommenders.utils.Recommendation;
 import static org.eclipse.recommenders.utils.Recommendations.top;
 import org.eclipse.recommenders.utils.names.IMethodName;
 import org.eclipse.recommenders.utils.names.ITypeName;
+import org.eclipse.recommenders.utils.names.VmMethodName;
 import org.eclipse.recommenders.utils.names.VmTypeName;
 import org.netbeans.api.editor.mimelookup.MimeRegistration;
 import org.netbeans.api.java.classpath.ClassPath;
@@ -119,7 +123,7 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
         resultSet.addAllItems(resolveCodeCompletion(info, caretOffset));
     }
 
-    List<CompletionItem> resolveCodeCompletion(CompilationInfo info, int caretOffset) throws Exception {
+    List<CompletionItem> resolveCodeCompletion(final CompilationInfo info, int caretOffset) throws Exception {
         String prefix = "";
         TokenSequence<JavaTokenId> ts = SourceUtils.getJavaTokenSequence(info.getTokenHierarchy(), caretOffset);
         ts.move(caretOffset);
@@ -213,7 +217,7 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
                 ICallModel net = store.acquireModel(name).orNull();
                 
                 try {
-                    net.setObservedCalls(Collections.<IMethodName>emptySet());
+                    net.setObservedCalls(observedCalls(info, new TreePath(path, newBody), clazz));
 
                     List<Recommendation<IMethodName>> recommendations = new ArrayList<>(top(net.recommendCalls(), 5, MIN_RELEVANCE));
 
@@ -269,6 +273,28 @@ public class RecommenderCodeCompletion extends AsyncCompletionQuery {
         }
 
         return null;
+    }
+
+    private static Set<IMethodName> observedCalls(final CompilationInfo info, TreePath newBody, final TypeElement clazz) {
+        final Set<IMethodName> calls = new HashSet<>();
+
+        new TreePathScanner<Void, Void>() {
+            @Override
+            public Void visitMemberSelect(MemberSelectTree node, Void p) {
+                TypeMirror type = info.getTrees().getTypeMirror(new TreePath(getCurrentPath(), node.getExpression()));
+                TypeElement clazz2 = (TypeElement) info.getTypes().asElement(type);//XXX
+                Element current = info.getTrees().getElement(getCurrentPath());
+
+                if (clazz == clazz2 && current != null && current.getKind() == ElementKind.METHOD) {
+                    String[] sig = SourceUtils.getJVMSignature(ElementHandle.create(current));
+                    calls.add(VmMethodName.get("L" + sig[0].replace('.', '/'), sig[1] + sig[2]));
+                }
+
+                return super.visitMemberSelect(node, p);
+            }
+        }.scan(newBody, null);
+
+        return calls;
     }
 
     private static final class MethodCompletionItem implements CompletionItem {
